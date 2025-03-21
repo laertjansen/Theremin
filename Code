@@ -1,0 +1,67 @@
+//Theremin with the HC-SR04, LED RGB, and a  Buzzer
+
+const int redPin = 3;
+const int greenPin = 5;
+const int bluePin = 6;
+
+// Ultrasonic 
+const int trigPin = 9;
+const int echoPin = 10;
+
+// Buzzer 
+const int buzzer = 7;
+
+long duration;
+int distance;
+
+const int maxDistance = 40; 
+const int minDistance = 5;  
+
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(buzzer, OUTPUT);
+}
+
+void loop() {
+  measureDistance();
+
+  Serial.print("Distance: ");
+  Serial.println(distance);
+
+  if (distance < minDistance) {
+    noTone(buzzer); 
+  } else {
+    int pitch = map(distance, minDistance, maxDistance, 2000, 200); 
+    tone(buzzer, pitch); 
+  }
+
+  cycleColors(distance);
+  delay(50);
+}
+
+void measureDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  duration = pulseIn(echoPin, HIGH);
+  distance = duration * 0.034 / 2;
+}
+
+void cycleColors(int dist) {
+  int red = map(dist, minDistance, maxDistance, 255, 0);
+  int green = map(dist, minDistance, maxDistance, 0, 255);
+  int blue = map(dist, minDistance, maxDistance, 127, 255); 
+
+  analogWrite(redPin, red);
+  analogWrite(greenPin, green);
+  analogWrite(bluePin, blue);
+}
