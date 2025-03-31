@@ -1,0 +1,100 @@
+// This is a more complex version of the Theremin that works with more components
+//Theremin with the HC-SR04, LED RGB, Button, Pot, and a  Buzzer
+
+const int redPin = 3;
+const int greenPin = 5;
+const int bluePin = 6;
+
+// Pot
+int potPin = A0;
+int potVal = 0;
+
+//Button
+const int buttonPin = 2;
+int lastState = HIGH;
+int currentState;
+bool effectEnabled = false;
+
+float vibratoSpeed = 0.05;  
+int vibratoDepth = 150;   
+
+// Ultrasonic
+const int trigPin = 9;
+const int echoPin = 10;
+
+// Buzzer
+const int buzzer = 7;
+
+long duration;
+int distance;
+
+const int maxDistance = 60;
+const int minDistance = 1;
+
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(buttonPin, INPUT_PULLUP);
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(buzzer, OUTPUT);
+}
+
+void loop() {
+  measureDistance();
+  potVal = analogRead(potPin);
+
+  int currentState = digitalRead(buttonPin);
+  if (lastState == HIGH && currentState == LOW) {
+    effectEnabled = !effectEnabled;
+    Serial.print("Effect Toggled: ");
+    Serial.println(effectEnabled ? "ON" : "OFF");
+  }
+  lastState = currentState;
+
+  Serial.print("Distance: ");
+  Serial.println(distance);
+
+  if (distance < minDistance) {
+    noTone(buzzer);
+  } else {
+    int basePitch = map(distance, minDistance, maxDistance, 2000, 200);
+    int pitchVariation = map(potVal, 0, 1023, -500, 500);
+
+    int finalPitch = basePitch + pitchVariation;
+
+    if (effectEnabled) {
+      float vibrato = sin(millis() * vibratoSpeed) * vibratoDepth;
+      tone(buzzer, finalPitch + vibrato);
+    } else {
+      tone(buzzer, finalPitch);
+    }
+  }
+
+  cycleColors(distance);
+  delay(50);
+}
+
+void measureDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  duration = pulseIn(echoPin, HIGH);
+  distance = duration * 0.034 / 2;
+}
+
+void cycleColors(int dist) {
+  int red = map(dist, minDistance, maxDistance, 255, 0);
+  int green = map(dist, minDistance, maxDistance, 0, 255);
+  int blue = map(dist, minDistance, maxDistance, 127, 255);
+
+  analogWrite(redPin, red);
+  analogWrite(greenPin, green);
+  analogWrite(bluePin, blue);
+}
