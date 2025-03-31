@@ -1,4 +1,5 @@
-//Theremin with the HC-SR04, LED RGB, and a  Buzzer
+// Theremin with the HC-SR04, LED RGB, and a Buzzer
+// A second version also includes a potentiometer and a button to add variation to the buzzer sounds
 
 ![Arduinio2](https://github.com/user-attachments/assets/38892def-c37c-4e03-8649-355fc08836b5)
 
